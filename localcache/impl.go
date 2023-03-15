@@ -7,11 +7,6 @@ import (
 
 const ExpiredTime = 30 * time.Second
 
-type Cache interface {
-	Get(key string) interface{}
-	Set(key string, value interface{})
-}
-
 type clock interface {
 	Now() time.Time
 }
@@ -22,12 +17,11 @@ func (realClock) Now() time.Time {
 	return time.Now()
 }
 
-
 type cache struct {
 	data   map[string]interface{}
 	expiry map[string]time.Time
 	mutex  sync.RWMutex
-	clock clock
+	clock  clock
 }
 
 func New(c clock) Cache {
@@ -38,7 +32,7 @@ func New(c clock) Cache {
 		data:   make(map[string]interface{}),
 		expiry: make(map[string]time.Time),
 		clock:  c,
-}
+	}
 }
 
 func (c *cache) Get(key string) interface{} {
@@ -66,5 +60,3 @@ func (c *cache) Set(key string, value interface{}) {
 	c.data[key] = value
 	c.expiry[key] = c.clock.Now().Add(ExpiredTime)
 }
-
-
