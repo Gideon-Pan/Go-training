@@ -37,7 +37,7 @@ func TestLocalCache(t *testing.T) {
 		mc := &mockClock{now: mockNow}
 		cache := New(mc)
 		cache.Set("foo", 123)
-		mc.now = mc.now.Add(ExpiredTime + 1*time.Second)
+		mc.now = mc.now.Add(expireTime + 1*time.Second)
 		got := cache.Get("foo")
 		AssertEqual(t, nil, got)
 	})

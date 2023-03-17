@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const ExpiredTime = 30 * time.Second
+const expireTime = 30 * time.Second
 
 type clock interface {
 	Now() time.Time
@@ -35,17 +35,18 @@ func New(c clock) Cache {
 	}
 }
 
+// Get returns the value for the given key, or nil if the key is not found or expired
 func (c *cache) Get(key string) interface{} {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
 	value, ok := c.data[key]
-	expiredTime := c.expiry[key]
+	expireTime := c.expiry[key]
 
 	if !ok {
 		return nil
 	}
-	if expiredTime.Before(c.clock.Now()) {
+	if expireTime.Before(c.clock.Now()) {
 		delete(c.data, key)
 		delete(c.expiry, key)
 		return nil
@@ -53,10 +54,11 @@ func (c *cache) Get(key string) interface{} {
 	return value
 }
 
+// Set sets the value for the given key
 func (c *cache) Set(key string, value interface{}) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	c.data[key] = value
-	c.expiry[key] = c.clock.Now().Add(ExpiredTime)
+	c.expiry[key] = c.clock.Now().Add(expireTime)
 }
